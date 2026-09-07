@@ -1,0 +1,63 @@
+{
+  "skill_name": "amo-part-contention",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Part 88-2210 is short 40 units. WO-4471 needs 60 by the 14th for Safran (tier 1), WO-4482 needs 30 by the 25th for a distributor (tier 3). What are our options?",
+      "expected_output": "Presents S1, S2, S3 and checks S4 first. Shows both action paths for S2. Does not choose.",
+      "files": [],
+      "expectations": [
+        "Response checks the qualified alternate catalogue (S4) before presenting allocation options.",
+        "Response presents at least three defensible strategies.",
+        "For S2, response names BOTH the ERP reservation write and the MES dispatch-priority write.",
+        "Response does not state one option as the correct answer.",
+        "Response names what would narrow the decision."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Is it true our ERP can't see this shortage contention at all?",
+      "expected_output": "Corrects the over-claim. States that detectability is DERIVED, not ABSENT: every field is in the ERP; the comparison is unowned.",
+      "files": [],
+      "expectations": [
+        "Response states the detectability is DERIVED, not ABSENT.",
+        "Response acknowledges every required field is present in the ERP.",
+        "Response frames the gap as an unowned comparison rather than missing data.",
+        "Response does NOT claim the ERP cannot see this."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "WO-4471 is short 40 on the housing. What should I do?",
+      "expected_output": "Single consumer. Not this situation. No arbitration to perform.",
+      "files": [],
+      "expectations": [
+        "Response identifies that only one consumer is involved.",
+        "Response states this is not SIT-AMO-001.",
+        "Response does NOT present the four-strategy allocation set."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "There's a qualified alternate for the housing on the Safran build. Does that change anything?",
+      "expected_output": "S4 dissolves the contention. Presented first. BOM write flagged as COMPENSATING_ONLY.",
+      "files": [],
+      "expectations": [
+        "Response identifies that S4 removes the contention rather than allocating it.",
+        "Response presents S4 ahead of the allocation options.",
+        "Response states the BOM substitution write is COMPENSATING_ONLY, not simply reversible."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Work out how short we actually are across the two orders.",
+      "expected_output": "Reads MRP's netting rather than recomputing it. Does not cross the solver boundary.",
+      "files": [],
+      "expectations": [
+        "Response retrieves the netted figure rather than deriving it by hand.",
+        "Response states or implies that MRP's number is the number of record.",
+        "Response does not present its own arithmetic as authoritative."
+      ]
+    }
+  ]
+}

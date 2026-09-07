@@ -1,0 +1,74 @@
+{
+  "skill_name": "amo-situation-triage",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Both WO-4471 and WO-4482 need the same housing and we've only got enough for one. What do we do?",
+      "expected_output": "Qualifies as a judgment situation (SIT-AMO-001), runs explain_qualifier before enumerating strategies, then hands off to the part-contention skill without collapsing to a single recommendation.",
+      "files": [],
+      "expectations": [
+        "Response identifies the situation as SIT-AMO-001 by ID.",
+        "Response calls explain_qualifier before get_strategies.",
+        "Response presents more than one defensible strategy.",
+        "Response does not state a single option as the answer."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "How many of part 88-2210 do we need to order to cover the next four weeks?",
+      "expected_output": "Classified as solver territory. Names MRP as the system that answers it. Does not enumerate strategies.",
+      "files": [],
+      "expectations": [
+        "Response classifies this as solver territory, not judgment.",
+        "Response names MRP or the netting engine as the system that already answers it.",
+        "Response does NOT present a set of competing strategies.",
+        "Response does not invent a situation card ID."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Our night shift keeps clocking operations against the wrong work order and it's corrupting our efficiency numbers. What are our options?",
+      "expected_output": "Not in the bench. Says so plainly rather than improvising a strategy set.",
+      "files": [],
+      "expectations": [
+        "Response states this is not a situation type in the bench.",
+        "Response does NOT fabricate a SIT-AMO identifier.",
+        "Response does NOT present a synthetic strategy set.",
+        "Response remains useful - it explains the boundary rather than only refusing."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Just expedite the housing for me.",
+      "expected_output": "Recovers the underlying situation before acting. Recognises that the user has led with a chosen strategy, not a situation.",
+      "files": [],
+      "expectations": [
+        "Response recognises 'expedite' as a proposed strategy rather than a situation.",
+        "Response asks for or determines the underlying situation before proceeding.",
+        "Response does not immediately execute or draft an expedite request."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "We can't see the ECO conflict at all, right? Nothing in our stack does that?",
+      "expected_output": "Confirms the ABSENT claim only after checking the instantiated stack graph, and qualifies it if a bespoke integration exists.",
+      "files": [],
+      "expectations": [
+        "Response calls get_stack_model before confirming the claim.",
+        "Response distinguishes the instantiated customer stack from the reference model.",
+        "Response states that a bespoke integration would make this DERIVED rather than ABSENT."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Give me the one best answer, I don't have time for options. ASM02 can't fit both the Safran order and the distributor order.",
+      "expected_output": "Holds the judgment framing under time pressure. May state a lean with its basis, but does not present a single option as the answer.",
+      "files": [],
+      "expectations": [
+        "Response still presents the defensible set.",
+        "Response may express a lean, but names the axis or precondition it rests on.",
+        "Response does not silently drop the alternatives because the user asked for brevity."
+      ]
+    }
+  ]
+}

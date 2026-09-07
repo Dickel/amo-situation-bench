@@ -1,0 +1,72 @@
+# No APS, and one bespoke integration.
+# Purpose in the set: makes UNDETECTABLE_HERE reachable, and is the only plant
+# where an authored ABSENT is wrong — the over-claim guard case.
+id: STACK-AMO-PLANT-B
+domain: AMO
+card_type: stack_instance
+instance_of: MODEL-AMO-PLANT-IT
+name: Plant B — no APS, bespoke effectivity check
+customer: SYNTHETIC-PLANT-B
+manufacturing_mode: discrete
+
+profile: >
+  Industrial equipment, mid-market, single site. Schedules in ERP plus a
+  maintained spreadsheet; the planner is the scheduler. Built a PLM-to-ERP
+  effectivity check in-house years ago because it bit them once.
+
+  This is the common mid-market shape, and it is the plant that disciplines the
+  pitch: one of the three headline blind spots does not exist here, and claiming
+  it would be falsified in the room by the person who built the integration.
+
+systems_present:
+  - {system_class: ERP,             deployment: SAP-PRD-200}
+  - {system_class: MES,             deployment: MES-DAY-01}
+  - {system_class: PLM_ECM,         deployment: PLM-DAY}
+  - {system_class: QMS,             deployment: QMS-DAY}
+  - {system_class: SUPPLIER_PORTAL, deployment: PORTAL-DAY}
+  - {system_class: HUMAN_ROUTINE,   deployment: null}
+
+systems_absent:
+  - system_class: APS
+    done_instead_by: HUMAN_ROUTINE
+    note: >
+      Sequencing is a planner with a spreadsheet. Consequence for SIT-AMO-004:
+      the infeasibility is never computed, so it is not that nothing arbitrates
+      the solver's output — there is no solver output. The situation is real and
+      undetectable, which is a stronger finding than an unowned comparison and
+      should be reported as such rather than as a missing feature.
+  - system_class: SCADA_HISTORIAN
+    done_instead_by: null
+    note: Machine state is on paper. Does not affect any current card.
+  - system_class: IBP_SOP
+    done_instead_by: HUMAN_ROUTINE
+    note: S&OP is a monthly meeting with a spreadsheet. Does not affect any current card.
+
+interfaces_present:
+  - {from: PLM_ECM,         to: ERP}
+  - {from: ERP,             to: MES}
+  - {from: MES,             to: ERP}
+  - {from: MES,             to: QMS}
+  - {from: SUPPLIER_PORTAL, to: ERP}
+
+bespoke_comparisons:
+  - closes_blind_spot: PLM_ECM-ERP
+    built: 2019
+    description: >
+      A nightly job compares ECO effectivity dates against released work order
+      build windows and emails the change board. Incomplete — it does not read
+      build state, so it cannot distinguish an order past the affected operation
+      from one that has not reached it — but the comparison exists and is owned.
+    resulting_detectability: DERIVED
+    note: >
+      SIT-AMO-003 must be presented as DERIVED here. The judgment content is
+      unchanged and the card still qualifies; only the detection claim weakens.
+
+expected:
+  live_blind_spots: [MES-ERP]
+  cards:
+    SIT-AMO-001: {verdict: JUDGMENT_IN_BENCH,   detectability: DERIVED}
+    SIT-AMO-002: {verdict: JUDGMENT_IN_BENCH,   detectability: DERIVED}
+    SIT-AMO-003: {verdict: JUDGMENT_IN_BENCH,   detectability: DERIVED}   # downgraded
+    SIT-AMO-004: {verdict: UNDETECTABLE_HERE,   missing: [APS]}
+    SIT-AMO-005: {verdict: JUDGMENT_IN_BENCH,   detectability: ABSENT}

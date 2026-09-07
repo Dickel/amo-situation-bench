@@ -1,0 +1,468 @@
+{
+  "_note": "Real payloads captured from https://mcp.sooriah.com/amo/mcp with include_cypher=false. Regenerate with `python -m ag01_situation_qualifier.capture_fixtures`.",
+  "_captured": "2026-09-07",
+  "list_situation_types": {
+    "domain": "AMO",
+    "count": 5,
+    "situation_types": [
+      {
+        "id": "SIT-AMO-001",
+        "name": "Scarce common part contention",
+        "trigger_condition": "two or more open work orders require the same part number; projected availability on-hand-plus-incoming is less than the sum of their required quantities",
+        "classification": "judgment",
+        "detected_by_system_class": "ERP",
+        "detectability": "DERIVED"
+      },
+      {
+        "id": "SIT-AMO-002",
+        "name": "Supplier delivery slip cascades to downstream work orders",
+        "trigger_condition": "a supplier pushes a promise date past the point where downstream work order buffer is exhausted",
+        "classification": "judgment",
+        "detected_by_system_class": "ERP",
+        "detectability": "DERIVED"
+      },
+      {
+        "id": "SIT-AMO-003",
+        "name": "Engineering change conflicts with in-progress build",
+        "trigger_condition": "an engineering change is approved with an effectivity date that falls inside the build window of one or more already-released work orders",
+        "classification": "judgment",
+        "detected_by_system_class": "PLM_ECM",
+        "detectability": "ABSENT"
+      },
+      {
+        "id": "SIT-AMO-004",
+        "name": "Bottleneck slot contention under a committed sequence",
+        "trigger_condition": "a committed sequence at a constrained work centre becomes infeasible - remaining available capacity in the horizon is less than the sum of queued operations' remaining run time - and two or more affected work orders carry commitments to different customers",
+        "classification": "judgment",
+        "detected_by_system_class": "APS",
+        "detectability": "ABSENT"
+      },
+      {
+        "id": "SIT-AMO-005",
+        "name": "Confirmed yield falls short of planned quantity against a committed date",
+        "trigger_condition": "the final operation on a work order confirms a yield below the planned quantity, and the replenishment lead time for the shortfall exceeds the slack remaining against the customer commitment",
+        "classification": "judgment",
+        "detected_by_system_class": "MES",
+        "detectability": "ABSENT"
+      }
+    ]
+  },
+  "get_stack_model": {
+    "id": "MODEL-AMO-PLANT-IT",
+    "name": "Discrete manufacturing plant IT model",
+    "purpose": "The shared landscape every AMO situation card refers to.",
+    "has_graph": true,
+    "systems": [
+      {
+        "system_class": "APS",
+        "isa95_level": "4/3",
+        "role": "finite-capacity scheduling, sequencing, changeover optimisation",
+        "emits": [
+          "committed sequence",
+          "feasibility violation",
+          "capacity shortfall"
+        ],
+        "accepts_writes": [
+          "priority override",
+          "resource calendar extension",
+          "forced sequence"
+        ],
+        "latency": "MINUTES",
+        "key_identifiers": [
+          "aps_sequence_id"
+        ],
+        "default_write_semantics": "UPDATABLE",
+        "note": "The only system in the landscape whose function is choosing among futures rather than recording facts."
+      },
+      {
+        "system_class": "ERP",
+        "isa95_level": 4,
+        "role": "MPS, MRP, MBOM, routing, inventory, purchasing, costing",
+        "emits": [
+          "planned order",
+          "production order",
+          "purchase order",
+          "reservation",
+          "MBOM explosion"
+        ],
+        "accepts_writes": [
+          "order create/release/reschedule",
+          "confirmation",
+          "goods movement"
+        ],
+        "latency": "NEXT_PLANNING_CYCLE",
+        "key_identifiers": [
+          "mrp_run_id",
+          "erp_transaction_id"
+        ],
+        "default_write_semantics": "UPDATABLE",
+        "note": "MRP runs as a background job, not an API action."
+      },
+      {
+        "system_class": "HUMAN_ROUTINE",
+        "isa95_level": null,
+        "role": "Decisions taken in a recurring human rhythm with no system of record.",
+        "emits": [
+          "nothing queryable"
+        ],
+        "accepts_writes": [
+          "nothing - this is why delegation_ceiling caps at RECOMMEND"
+        ],
+        "latency": "HOURS",
+        "key_identifiers": [],
+        "default_write_semantics": null,
+        "note": null
+      },
+      {
+        "system_class": "IBP_SOP",
+        "isa95_level": 4,
+        "role": "demand plan, constrained supply plan, S&OP cycle",
+        "emits": [
+          "planned independent requirement",
+          "constrained supply plan"
+        ],
+        "accepts_writes": [
+          "actual consumption",
+          "capacity consumed",
+          "cost actuals"
+        ],
+        "latency": "NEXT_PLANNING_CYCLE",
+        "key_identifiers": [],
+        "default_write_semantics": null,
+        "note": null
+      },
+      {
+        "system_class": "MES",
+        "isa95_level": 3,
+        "role": "dispatch, traveler, labour and machine capture, in-process quality, genealogy",
+        "emits": [
+          "operation confirmation",
+          "yield",
+          "scrap",
+          "downtime",
+          "nonconformance",
+          "genealogy"
+        ],
+        "accepts_writes": [
+          "work order dispatch",
+          "priority",
+          "work instruction reference"
+        ],
+        "latency": "MINUTES",
+        "key_identifiers": [
+          "mes_run_id"
+        ],
+        "default_write_semantics": "APPEND_ONLY",
+        "note": "Dual-role. Its confirmations generate supply and consume it, which feeds the next MRP run."
+      },
+      {
+        "system_class": "PLM_ECM",
+        "isa95_level": 4,
+        "role": "product definition, EBOM, engineering change control, work instructions",
+        "emits": [
+          "engineering change record",
+          "EBOM release",
+          "effectivity date",
+          "work instruction revision"
+        ],
+        "accepts_writes": [
+          "as-built configuration",
+          "deviation and concession records"
+        ],
+        "latency": "HOURS",
+        "key_identifiers": [
+          "ecm_change_id"
+        ],
+        "default_write_semantics": "UPDATABLE",
+        "note": null
+      },
+      {
+        "system_class": "QMS",
+        "isa95_level": 3,
+        "role": "inspection plans, nonconformance, CAPA, supplier quality, audit",
+        "emits": [
+          "inspection result",
+          "nonconformance record",
+          "disposition"
+        ],
+        "accepts_writes": [
+          "disposition decision",
+          "deviation approval"
+        ],
+        "latency": "HOURS",
+        "key_identifiers": [],
+        "default_write_semantics": "APPEND_ONLY",
+        "note": null
+      },
+      {
+        "system_class": "SCADA_HISTORIAN",
+        "isa95_level": 2,
+        "role": "process data, machine state, downtime reason capture",
+        "emits": [
+          "machine state change",
+          "process variable",
+          "downtime reason code"
+        ],
+        "accepts_writes": [
+          "setpoint"
+        ],
+        "latency": "SECONDS",
+        "key_identifiers": [],
+        "default_write_semantics": null,
+        "note": null
+      },
+      {
+        "system_class": "SUPPLIER_PORTAL",
+        "isa95_level": 4,
+        "role": "supplier confirmation, promise date changes, ASN",
+        "emits": [
+          "promise date revision",
+          "advance shipping notice",
+          "non-confirmation"
+        ],
+        "accepts_writes": [
+          "expedite request",
+          "schedule agreement change"
+        ],
+        "latency": "HOURS",
+        "key_identifiers": [],
+        "default_write_semantics": "UPDATABLE",
+        "note": null
+      }
+    ],
+    "interfaces": [
+      {
+        "from": "APS",
+        "to": "MES",
+        "carries": "Committed sequence",
+        "cadence": "CADENCE"
+      },
+      {
+        "from": "ERP",
+        "to": "APS",
+        "carries": "Work order",
+        "cadence": "EVENT"
+      },
+      {
+        "from": "ERP",
+        "to": "IBP_SOP",
+        "carries": "Operation confirmation",
+        "cadence": "CADENCE"
+      },
+      {
+        "from": "ERP",
+        "to": "MES",
+        "carries": "Work order",
+        "cadence": "EVENT"
+      },
+      {
+        "from": "IBP_SOP",
+        "to": "ERP",
+        "carries": "Planned independent requirement",
+        "cadence": "CADENCE"
+      },
+      {
+        "from": "MES",
+        "to": "APS",
+        "carries": "Operation confirmation",
+        "cadence": "EVENT"
+      },
+      {
+        "from": "MES",
+        "to": "ERP",
+        "carries": "Operation confirmation",
+        "cadence": "EVENT"
+      },
+      {
+        "from": "MES",
+        "to": "ERP",
+        "carries": "Goods movement",
+        "cadence": "EVENT"
+      },
+      {
+        "from": "MES",
+        "to": "QMS",
+        "carries": "Inspection result",
+        "cadence": "EVENT"
+      },
+      {
+        "from": "PLM_ECM",
+        "to": "ERP",
+        "carries": "Engineering change record",
+        "cadence": "EVENT"
+      },
+      {
+        "from": "PLM_ECM",
+        "to": "MES",
+        "carries": "Work instruction",
+        "cadence": "QUERY"
+      },
+      {
+        "from": "SCADA_HISTORIAN",
+        "to": "MES",
+        "carries": "Machine state",
+        "cadence": "EVENT"
+      },
+      {
+        "from": "SUPPLIER_PORTAL",
+        "to": "ERP",
+        "carries": "Supplier promise date",
+        "cadence": "EVENT"
+      }
+    ],
+    "known_blind_spots": [
+      {
+        "gap": "MES knows delivered quantity, ERP knows planned quantity, and no message carries the delta against the customer commitment",
+        "systems": [
+          "MES",
+          "ERP"
+        ],
+        "covered_by": [
+          "SIT-AMO-005"
+        ]
+      },
+      {
+        "gap": "the solver reports infeasibility; nothing arbitrates between commitments when no feasible option satisfies all of them",
+        "systems": [
+          "APS",
+          "HUMAN_ROUTINE"
+        ],
+        "covered_by": [
+          "SIT-AMO-004"
+        ]
+      },
+      {
+        "gap": "no system compares ECO effectivity against already-released orders",
+        "systems": [
+          "PLM_ECM",
+          "ERP"
+        ],
+        "covered_by": [
+          "SIT-AMO-003"
+        ]
+      }
+    ]
+  },
+  "explain_qualifier": {
+    "SIT-AMO-004": {
+      "situation_id": "SIT-AMO-004",
+      "domain": "AMO",
+      "name": "Bottleneck slot contention under a committed sequence",
+      "trigger_condition": "a committed sequence at a constrained work centre becomes infeasible - remaining available capacity in the horizon is less than the sum of queued operations' remaining run time - and two or more affected work orders carry commitments to different customers",
+      "trigger_source_system_class": "APS",
+      "detectability": "ABSENT",
+      "detectability_note": null,
+      "solver_boundary": "Finite-capacity sequencing - resource calendars, the changeover matrix, operation precedence, feasibility checking - is solved, and mature APS engines solve it well. Out of scope; AMO does not attempt it. This card covers only the arbitration that begins when the solver's feasible set contains no option satisfying every commitment. The solver produces the option space; the judgment is which option to take.",
+      "temporal_semantics": [],
+      "tracked_transitions": [],
+      "classification": "judgment",
+      "practitioner_divergence": "yes",
+      "rationale": "two competent schedulers holding the identical queue, calendar, changeover matrix and commit dates will not converge - one protects bottleneck utilisation, one protects the earliest commit date, one protects a specific account because of something known about that customer that is not in the data; the solver settles feasibility, not which feasible option is right"
+    },
+    "SIT-AMO-001": {
+      "situation_id": "SIT-AMO-001",
+      "domain": "AMO",
+      "name": "Scarce common part contention",
+      "trigger_condition": "two or more open work orders require the same part number; projected availability on-hand-plus-incoming is less than the sum of their required quantities",
+      "trigger_source_system_class": "ERP",
+      "detectability": "DERIVED",
+      "detectability_note": null,
+      "solver_boundary": "Netting one item's supply against total demand is solved - MRP does it correctly every run. What is not solved, and not attempted, is allocation between two competing consumers of the same shortfall: MRP's output shape is one net requirement per item per period, which structurally cannot express a contention between WO-4471 and WO-4482.",
+      "temporal_semantics": [],
+      "tracked_transitions": [],
+      "classification": "judgment",
+      "practitioner_divergence": "yes",
+      "rationale": "two planners with the same shortage will reasonably weigh contractual tier, relationship history, and expedite cost differently - there is no single correct ranking"
+    },
+    "SIT-AMO-002": {
+      "situation_id": "SIT-AMO-002",
+      "domain": "AMO",
+      "name": "Supplier delivery slip cascades to downstream work orders",
+      "trigger_condition": "a supplier pushes a promise date past the point where downstream work order buffer is exhausted",
+      "trigger_source_system_class": "ERP",
+      "detectability": "DERIVED",
+      "detectability_note": null,
+      "solver_boundary": "Recomputing downstream date impact from a changed promise date is deterministic pegging arithmetic and belongs to the kernel, not to a taught agent. The judgment begins after the cascade is computed: which exposed order absorbs the slip, and whether the supplier's recovery commitment is credible.",
+      "temporal_semantics": [
+        "need_date=source_valid_from",
+        "promise_date=source_valid_from",
+        "promise_date_changed_at=graph_updated_at",
+        "promise_date_prior=source_valid_from"
+      ],
+      "tracked_transitions": [
+        {
+          "field": "promise_date",
+          "node_type": "POLine",
+          "note": "v0.4 carried original_promise_date and revised_promise_date as two fields on one node. That is a bitemporal representation, undeclared, holding one revision and no record of when it arrived. Declaring it makes the same trigger expressible and makes the bound explicit: one prior value, never a history.",
+          "retains": 1
+        }
+      ],
+      "classification": "judgment",
+      "practitioner_divergence": "yes",
+      "rationale": "the decision hinges on trust in the supplier's recovery commitment and risk appetite - two planners looking at the same reliability score can reasonably land on hold-and-monitor versus dual-source"
+    },
+    "SIT-AMO-003": {
+      "situation_id": "SIT-AMO-003",
+      "domain": "AMO",
+      "name": "Engineering change conflicts with in-progress build",
+      "trigger_condition": "an engineering change is approved with an effectivity date that falls inside the build window of one or more already-released work orders",
+      "trigger_source_system_class": "PLM_ECM",
+      "detectability": "ABSENT",
+      "detectability_note": "ABSENT, and the mechanism is specific: PLM holds the effectivity date, ERP holds the released orders, and neither owns the comparison. The BOM usage field is where it hides - a change to engineering usage with no matching production-usage change is invisible to MRP and to the traveler at the same time. See MODEL-AMO-PLANT-IT.known_blind_spots.",
+      "solver_boundary": "Identifying which released orders fall inside an effectivity window is a date-range query, fully solved. Nothing about the disposition is.",
+      "temporal_semantics": [],
+      "tracked_transitions": [],
+      "classification": "judgment",
+      "practitioner_divergence": "yes",
+      "rationale": "whether a change is \"safety-driven enough\" to force rework versus \"improvement enough\" to grandfather is a judgment call informed by context the change record itself doesn't encode"
+    },
+    "SIT-AMO-005": {
+      "situation_id": "SIT-AMO-005",
+      "domain": "AMO",
+      "name": "Confirmed yield falls short of planned quantity against a committed date",
+      "trigger_condition": "the final operation on a work order confirms a yield below the planned quantity, and the replenishment lead time for the shortfall exceeds the slack remaining against the customer commitment",
+      "trigger_source_system_class": "MES",
+      "detectability": "ABSENT",
+      "detectability_note": "ABSENT. MES knows the delivered quantity, ERP knows the planned quantity, and no message in the standard confirmation-and-goods-movement contract carries the delta against the customer commitment. MRP simply re-nets on the next run and issues a new order as if nothing had happened.",
+      "solver_boundary": "Re-netting the shortfall and generating a replacement planned order is solved - the next MRP run does it automatically and correctly. What is not solved is that the replacement order carries a full lead time against a commitment that has already passed, and no system compares those two facts. The arithmetic is not the problem; the silence is.",
+      "temporal_semantics": [],
+      "tracked_transitions": [],
+      "classification": "judgment",
+      "practitioner_divergence": "yes",
+      "rationale": "a one-unit shortfall is trivially small and the four responses cost wildly different amounts depending on facts no system holds - whether this customer accepts partials, whether the scrap cause will recur on the rerun, and what the displaced order is worth; practitioners will reasonably rank them differently"
+    }
+  },
+  "match_situations": {
+    "WO-4471": {
+      "entity_id": "WO-4471",
+      "found": true,
+      "labels": [
+        "WorkOrder"
+      ],
+      "matches": [
+        {
+          "situation_id": "SIT-AMO-001",
+          "name": "Scarce common part contention",
+          "matched_instances": [
+            "PART-XR200",
+            "WO-4471",
+            "WO-4482"
+          ]
+        },
+        {
+          "situation_id": "SIT-AMO-004",
+          "name": "Bottleneck slot contention under a committed sequence",
+          "matched_instances": [
+            "CUST-NOVASAT",
+            "CUST-ORBITEL",
+            "OP-4471-0020",
+            "OP-4503-0020",
+            "WC-ASM02",
+            "WO-4471",
+            "WO-4503"
+          ]
+        }
+      ]
+    }
+  }
+}

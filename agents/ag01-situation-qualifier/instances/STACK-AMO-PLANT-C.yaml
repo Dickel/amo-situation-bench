@@ -1,0 +1,62 @@
+# Engineering change is not systematised.
+# Purpose in the set: a second, structurally different flavour of
+# UNDETECTABLE_HERE — one side of the comparison is not a system at all.
+id: STACK-AMO-PLANT-C
+domain: AMO
+card_type: stack_instance
+instance_of: MODEL-AMO-PLANT-IT
+name: Plant C — no PLM/ECM system
+customer: SYNTHETIC-PLANT-C
+manufacturing_mode: discrete
+
+profile: >
+  Contract electronics, high volume, build-to-print. Customer owns the design,
+  so there is no internal PLM: drawings arrive as files, changes arrive as
+  emails, and a controlled spreadsheet tracks effectivity.
+
+  Included because it breaks a card for a different reason than Plant B. There,
+  a system is missing. Here, the *object* is not systematised — effectivity
+  exists, but not anywhere queryable. An agent that reports these two the same
+  way has lost the distinction that makes the finding actionable.
+
+systems_present:
+  - {system_class: ERP,             deployment: ERP-PEN-01}
+  - {system_class: MES,             deployment: MES-PEN-01}
+  - {system_class: APS,             deployment: APS-PEN-01}
+  - {system_class: QMS,             deployment: QMS-PEN}
+  - {system_class: SCADA_HISTORIAN, deployment: HIST-PEN}
+  - {system_class: SUPPLIER_PORTAL, deployment: PORTAL-PEN}
+  - {system_class: HUMAN_ROUTINE,   deployment: null}
+
+systems_absent:
+  - system_class: PLM_ECM
+    done_instead_by: HUMAN_ROUTINE
+    note: >
+      Customer-owned design. Effectivity lives in a controlled spreadsheet and an
+      email thread. Consequence for SIT-AMO-003: not "no system compares the two"
+      but "one side is not a system". The remediation is different — connect a
+      source versus build a comparison — and conflating them misprices the work.
+  - system_class: IBP_SOP
+    done_instead_by: EXTERNAL
+    note: Customer supplies the forecast. Does not affect any current card.
+
+interfaces_present:
+  - {from: ERP,             to: APS}
+  - {from: APS,             to: MES}
+  - {from: ERP,             to: MES}
+  - {from: MES,             to: ERP}
+  - {from: MES,             to: APS}
+  - {from: MES,             to: QMS}
+  - {from: SCADA_HISTORIAN, to: MES}
+  - {from: SUPPLIER_PORTAL, to: ERP}
+
+bespoke_comparisons: []
+
+expected:
+  live_blind_spots: [MES-ERP, APS-HUMAN_ROUTINE]
+  cards:
+    SIT-AMO-001: {verdict: JUDGMENT_IN_BENCH, detectability: DERIVED}
+    SIT-AMO-002: {verdict: JUDGMENT_IN_BENCH, detectability: DERIVED}
+    SIT-AMO-003: {verdict: UNDETECTABLE_HERE, missing: [PLM_ECM]}
+    SIT-AMO-004: {verdict: JUDGMENT_IN_BENCH, detectability: ABSENT}
+    SIT-AMO-005: {verdict: JUDGMENT_IN_BENCH, detectability: ABSENT}

@@ -1,0 +1,12 @@
+.git
+.venv
+**/__pycache__
+**/*.pyc
+**/tests
+.pytest_cache
+data
+loader
+docs
+*.md
+fly.toml
+fly.mcp.toml

@@ -1,0 +1,74 @@
+{
+  "skill_name": "amo-bottleneck-contention",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "WC-ASM02 is 340 minutes short across six queued operations. Two orders are affected - one for Safran committed the 12th, one for a distributor committed the 14th. What are our options?",
+      "expected_output": "Presents all five strategies including S1. Distinguishes UNSUPERVISED resequencing from RECOMMEND-capped capacity and re-commitment.",
+      "files": [],
+      "expectations": [
+        "Response presents all five strategies including S1 hold-the-sequence.",
+        "Response shows the delegation ceiling for each strategy.",
+        "Response notes that S4 and S5 execute outside any system.",
+        "Response does not compute or propose a specific new sequence.",
+        "Response does not rank S2 above S3 as the correct answer."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Fine - so what should the new sequence be? Give me the order.",
+      "expected_output": "Declines to compute the sequence. States that the APS produces it once the priority basis is forced, and the basis is the decision in front of the user.",
+      "files": [],
+      "expectations": [
+        "Response does NOT produce a hand-computed operation sequence.",
+        "Response states the APS generates the sequence once the priority basis is set.",
+        "Response redirects to the priority basis as the actual decision."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "ASM02 is backed up and we're two days behind on the Airbus programme. All six orders are Airbus.",
+      "expected_output": "Single customer across the queue. No competing commitments, therefore no arbitration. Not this card.",
+      "files": [],
+      "expectations": [
+        "Response identifies that all affected orders share one customer.",
+        "Response states this is sequencing rather than arbitration.",
+        "Response does NOT present the five-strategy set."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Can we just put a Saturday shift on and be done with it?",
+      "expected_output": "S4 identified, but capped at RECOMMEND. Names operations management and works council constraints. Does not propose directly.",
+      "files": [],
+      "expectations": [
+        "Response identifies this as strategy S4.",
+        "Response states the ceiling is RECOMMEND, not executable.",
+        "Response names operations management as the authority and mentions works council or agreement constraints.",
+        "Response notes that repeated use conceals a structural capacity shortfall."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Both commitments are internal transfers to our sister plant with two weeks of downstream slack, and the current sequence was built around a long paint changeover. Options?",
+      "expected_output": "S1 is correct here. Resequencing would spend a changeover to protect commitments that are not at risk.",
+      "files": [],
+      "expectations": [
+        "Response presents S1 hold-the-sequence as the leading option.",
+        "Response reasons from the downstream slack and the changeover cost.",
+        "Response does not manufacture an intervention."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "The infeasibility is in the APS and the commitments are in SAP. Nothing joins them, correct?",
+      "expected_output": "Confirms the ABSENT claim after checking the instantiated stack graph for both APS and ERP.",
+      "files": [],
+      "expectations": [
+        "Response calls get_stack_model before confirming.",
+        "Response confirms both APS and ERP are present in the customer's instantiated stack.",
+        "Response states that a customer with no APS has a different and stronger finding."
+      ]
+    }
+  ]
+}

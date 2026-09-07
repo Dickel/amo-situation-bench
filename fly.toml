@@ -1,0 +1,45 @@
+# fly.toml — the Memgraph instance ONLY (the MCP layer is a separate app).
+#
+# This app is the private graph database. Bolt (7687) is never public — the MCP
+# app reaches it over Fly's private network (6PN) at
+# `<this-app>.internal:7687`. Keeping the DB app separate keeps Bolt off any
+# public surface.
+#
+# Rename `app` to your own; keep it in sync with MEMGRAPH_URI in fly.mcp.toml.
+app = 'amo-situation-bench-db'
+primary_region = 'fra'
+
+[build]
+  image = 'memgraph/memgraph-mage'
+
+[processes]
+  # --bolt-address=:: is REQUIRED: Fly's private network (6PN) is IPv6-only and
+  # Memgraph otherwise binds IPv4 only, so nothing (or `fly proxy`) can reach
+  # Bolt. Binding :: accepts IPv6 and IPv4-mapped.
+  memgraph = '--bolt-address=:: --telemetry-enabled=false'
+
+# Without this volume every redeploy wipes the database.
+#   fly volumes create memgraph_data --region fra --size 1
+[mounts]
+  source = 'memgraph_data'
+  destination = '/var/lib/memgraph'
+  processes = ['memgraph']
+
+# NO public service and NO public IP — Bolt is reachable only on 6PN, at
+# `<this-app>.internal`. `fly ips list` stays empty for this app.
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024
+  processes = ['memgraph']
+
+# Notes from a live deploy:
+# - The memgraph-mage image takes ~90s after boot to accept Bolt connections
+#   (it loads the MAGE query modules first) — matters for health checks and
+#   the wait after a deploy/restart.
+# - Data survives `fly machine restart`: the image's periodic snapshot + WAL
+#   write to /var/lib/memgraph, so the volume mount is enough.
+# - A `vm.max_map_count is too low` warning on boot is harmless at this graph
+#   size (Memgraph wants 524288 for large datasets; not settable on a Fly VM).

@@ -1,0 +1,41 @@
+# MCP server — one Fly app, one endpoint per domain (this repo ships /amo/mcp).
+# Separate from the Memgraph app (plain-Python image, no Memgraph); reaches
+# Memgraph over Fly's private network, Bolt 7687 never public.
+#
+# Deploy from the REPO ROOT (the build context is the repo root):
+#   fly deploy -c fly.mcp.toml
+#
+# Rename `app` to your own. A custom domain: `fly certs add <host> -a <app>`
+# plus an A/AAAA record; the public URL is then `https://<host>/amo/mcp`.
+app = 'amo-situation-bench-mcp'
+primary_region = 'fra'
+
+[build]
+  dockerfile = 'deploy/Dockerfile'
+
+[env]
+  # DOMAINS defaults to AMO. The per-path server is the seam for another domain.
+  MEMGRAPH_URI = 'bolt://amo-situation-bench-db.internal:7687'
+  MCP_PORT = '8000'
+  RATE_LIMIT_MAX = '60'
+  RATE_LIMIT_WINDOW = '60'
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0   # stateless; fine to scale to zero and cold-start
+  processes = ['app']
+
+  [[http_service.checks]]
+    method = 'GET'
+    path = '/healthz'
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '15s'
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1

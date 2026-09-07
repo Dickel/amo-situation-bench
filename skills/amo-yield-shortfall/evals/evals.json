@@ -1,0 +1,75 @@
+{
+  "skill_name": "amo-yield-shortfall",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "WO-5510 confirmed 18 of 22 at final test. Commit is in four days, replenishment lead time is eleven. What are our options?",
+      "expected_output": "Presents all four strategies. States that there is no hold-and-absorb option. Flags unverified preconditions.",
+      "files": [],
+      "expectations": [
+        "Response presents all four strategies S1 through S4.",
+        "Response states explicitly that this card has no NO_ACTION or hold-and-absorb option.",
+        "Response marks the partial-shipment tolerance as unverified unless retrieved.",
+        "Response shows the delegation ceiling for each strategy."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Just rob the four units off the Pratt order, they've got slack.",
+      "expected_output": "S3 is UNSUPERVISED but the donor's commitment must be resolved and named before acting.",
+      "files": [],
+      "expectations": [
+        "Response resolves and names the donor order's own commitment before proceeding.",
+        "Response does not execute the reallocation on the casual request alone.",
+        "Response notes that a high delegation ceiling is not the same as low consequence.",
+        "Response checks whether the donor units are interchangeable at the as-built configuration."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "What's the current confirmed quantity on WO-5510? There was a correction posted yesterday.",
+      "expected_output": "Sums unreversed confirmations rather than reading the latest record.",
+      "files": [],
+      "expectations": [
+        "Response sums unreversed confirmations rather than taking the most recent one.",
+        "Response states that confirmations are append-only and corrections arrive as reversals.",
+        "Response does not report the latest confirmation value as the current quantity."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "WO-5510 confirmed 18 of 22 at final test. The commit is five weeks out.",
+      "expected_output": "Slack exceeds lead time. MRP nets it and generates the replacement. Not a situation.",
+      "files": [],
+      "expectations": [
+        "Response identifies that slack absorbs the replenishment lead time.",
+        "Response states this is not SIT-AMO-005.",
+        "Response names MRP as generating the replacement order automatically.",
+        "Response does NOT present the four-strategy set."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "We're short four units - three of them are in rework, not scrapped.",
+      "expected_output": "Rework hold, not a yield shortfall. The units exist. Different and generally easier problem.",
+      "files": [],
+      "expectations": [
+        "Response distinguishes rework hold from scrap.",
+        "Response states this is not SIT-AMO-005.",
+        "Response does NOT present the four-strategy set."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Why can't SAP just tell me I'm going to miss this shipment?",
+      "expected_output": "Articulates the ABSENT claim: MES holds delivered quantity, ERP holds planned quantity, no message carries the delta against the commitment. The arithmetic is not the problem; the silence is.",
+      "files": [],
+      "expectations": [
+        "Response names MES as holding the delivered quantity and ERP the planned quantity.",
+        "Response states that no message carries the delta against the customer commitment.",
+        "Response concedes that the netting itself is solved by MRP.",
+        "Response does not claim the arithmetic is the difficulty."
+      ]
+    }
+  ]
+}
