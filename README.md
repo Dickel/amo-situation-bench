@@ -1,72 +1,211 @@
 # AMO — Agentic Manufacturing Orchestration
 
-**A small public dataset of the S&OE decisions where good planners disagree — plus
-the graph, the server, and the first agent that let an AI reason about them
-without pretending there's one right answer.**
+**A synthetic factory, the short-horizon decisions inside it where good planners
+disagree, and the graph, server and agent that let an AI reason about them
+without pretending there is one right answer.**
 
-S&OE — Sales & Operations Execution — is the short-horizon cycle where the plan
-meets what actually happened on the floor and someone has to re-decide: this
-week, this shift, this order. It's where a supplier slips, a batch comes up
-short, an engineering change lands mid-build. The planning cycle above it (S&OP)
-is not in scope here; the daily and weekly re-deciding is.
-
-Every situation in the bench passes one test: *given the same numbers, would two
-competent practitioners land on the same move, or two different defensible ones?*
-If they'd converge, a solver already owns it and it's not in here. If they'd
-diverge, it's a card.
-
-Nothing is real. No customer data, no real orders, no real plants. Public vendors
+Nothing in here is real. No customer data, no real orders, no real plants. The
+plant is invented, the work orders are invented, and the vendors named
 (SAP S/4HANA, Siemens Opcenter) are named only to borrow interface vocabulary.
+What is real is the structure: the seams between systems, the shape of the
+decisions that fall into them, and the discipline that stops an agent
+collapsing a judgment call into a confident single answer.
 
 ---
 
-## 🛠️ What's in here
+## Why AMO
 
-**cards** · [`data/amo-situations.md`](data/amo-situations.md) · Markdown + YAML
-Five S&OE situations where the hard part isn't the arithmetic — it's the call. A
-shared part two orders both need. A supplier date that slips past the buffer. An
-engineering change that lands mid-build. A bottleneck that can't fit everyone. A
-batch that comes up short. Each card says what fires it, what a solver already
-handles, and the three-to-five strategies nobody agrees on — each with how
-reversible it is and how far you'd trust an agent to run it alone.
+Manufacturing already has systems for almost everything. ERP holds the
+commitments. APS chooses a sequence. MES records what the floor actually did.
+PLM owns the design and its changes. Each is excellent at its job and each has
+one thing in common: **it is a system of record for one function, usually at one
+site.**
 
-**the plant model** · [`data/amo-situations.md`](data/amo-situations.md) · a graph
-A map of the systems a factory runs — ERP, MES, APS, PLM, the shop floor — what
-each one knows, and the seams between them where a problem is visible from
-neither side. Every "nobody can see this today" claim in the cards hangs off one
-of those seams.
+An MES is deployed per plant. It is configured around that plant's lines, its
+work centres, its routings, its people. That is not a defect — it is what makes
+it useful. But it means the MES cannot answer the question a planner is actually
+holding on a Tuesday morning:
 
-**loader** · [`loader/`](loader/) · Python
-Turns the cards into a Memgraph graph you can query. One command, one transaction
-— a reader never catches it half-built. It also checks every card's trigger
-against its own example and tells you which ones don't fire.
+> *This part is short. Two programmes need it. One of them is for a customer we
+> are already late to. Do I protect the programme, protect total flow, protect
+> cash, or protect the supplier relationship — and can I still make the date I
+> promised?*
 
-**MCP server** · [`mcp_server/`](mcp_server/) · Python · [live](https://mcp.sooriah.com/amo/mcp)
-A read-only API an AI agent connects to. Ask it what situation a work order is
-in, what the competing strategies are, or which systems would have to be wired
-together to even notice the problem. It hands back the exact query it ran, every
-time.
+That question spans ERP (the commitment), MES (what was really delivered), PLM
+(whether the revision in flight is still valid), the supplier portal (whether
+the promise date moved), and a human routine with no system of record at all
+(the clear-to-build review where it actually gets decided). No system owns the
+comparison, because a comparison across systems is nobody's system of record.
 
-**skills** · [`skills/`](skills/)
-Short playbooks, one per situation, that teach an agent to recognise it from
-plain language and what a complete answer looks like — always the full set of
-options with their trade-offs, never a single recommendation.
+**AMO is the layer that does own it: a system of *action* that runs across
+sites and across systems, from planning through to execution.** Not another
+system of record. Not a better solver. The thing that notices a situation
+nothing else can see, states the defensible moves and their trade-offs, and
+knows how far it is allowed to act on its own.
 
-**AG-01, the qualifier** · [`agents/ag01-situation-qualifier/`](agents/ag01-situation-qualifier/) · Python + LangGraph
-The first agent. Ask it "what's going on with WO-4471?" and it tells you one of
-four things: this is a judgment call (here's the spread), a solver already
-answers this (here's which one), it's real but invisible at your plant (here's
-the missing system), or it's outside the bench entirely. It will not list
-strategies — that's the next agent's job, and it's blocked from calling that
-tool at all.
+### What qualifies as a situation
+
+Every card in the bench passes one test:
+
+> *Given the same numbers, would two competent practitioners land on the same
+> move, or on two different defensible ones?*
+
+If they would converge, a solver already owns it and it is not in here.
+Netting, BOM explosion, date propagation, re-sequencing against a stated
+objective — all solved, all deliberately out of scope. If they would diverge,
+and both could defend the answer, it is a card.
+
+This is also the boundary of the scope. **S&OE** — Sales & Operations Execution
+— is the short-horizon cycle where the plan meets what actually happened and
+someone has to re-decide: this week, this shift, this order. The planning cycle
+above it (S&OP) is not in scope. The daily and weekly re-deciding is.
+
+### The three layers, and why only one of them is agentic
+
+| Layer | What it does | Test |
+|---|---|---|
+| Deterministic arithmetic | Explode the BOM, net against supply, propagate a date change, find the first period that goes short | Two competent planners compute the same number. No model belongs near it. |
+| What-if and optimisation | Stage a change and recompute; compare before and after on delivery, coverage and cash | Can the objective be written as one function? Then optimise it, do not reason about it. |
+| **Choosing between defensible answers** | Decide which option *this* plant should take, when coverage, cash and delivery are in genuine tension | Do two good practitioners disagree, and can both defend it? Only then is there something to teach. |
+
+Simulation tells you what each option costs. It does not tell you which one to
+take. That remainder is the whole subject of this repo.
+
+Longer form: [dickel.sooriah.com/vao/manufacturing](https://dickel.sooriah.com/vao/manufacturing).
+
+---
+
+## What has been built
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  1 · THE SYNTHETIC PLANT                                                      ║
+║  MODEL-AMO-PLANT-IT — nine system classes, their interfaces, their seams      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+ ISA-95
+ level
+        IBP / S&OP              PLM / ECM              SUPPLIER PORTAL
+  L4    planned independent     eBOM · ECO ·           promise dates
+        requirements            work instructions
+             │                       │   ╎                     │
+             │                       │   ╎ BLIND-PLM-ERP       │
+             │                       │   ╎ no system compares  │
+             │                       │   ╎ ECO effectivity to  │
+             │                       │   ╎ released orders     │
+             │                       │   ╎ → SIT-AMO-003       │
+             └───────────┐           │   ╎                     │
+                         ▼           ▼   ╎                     ▼
+  L4                  ╔══════════════════╧═════════════════════════╗
+                      ║              E R P                         ║
+                      ║  mBOM · routing · work orders · POs ·      ║
+                      ║  component reservations · commitments      ║
+                      ╚═══╤══════════════════════════════════╤═════╝
+                          │                                  ╎
+                          ▼                                  ╎ BLIND-MES-ERP
+  L4/3    ╔═══════════════════════╗   ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌ ╎ ERP holds planned
+          ║        A P S          ║ ╌╌ HUMAN ROUTINE         ╎ quantity, MES holds
+          ║ sequenced operation   ║   clear-to-build,        ╎ delivered quantity,
+          ║ queue per work centre ║   daily tiering,         ╎ no message carries
+          ║                       ║   overtime — no          ╎ the delta against
+          ║                       ║   system of record       ╎ the commitment
+          ╚═══════════╤═══════════╝     ▲                    ╎ → SIT-AMO-005
+                      │      BLIND-APS-HUM                   ╎
+                      │      solver reports infeasible;      ╎
+                      │      nothing arbitrates between      ╎
+                      │      commitments → SIT-AMO-004       ╎
+                      ▼                                      ╎
+  L3         ╔═════════════════╗                             ╎
+             ║      M E S      ║══▶ QMS   ◀╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯
+             ║ confirmations · ║    inspection, NCR
+             ║ demonstrated    ║
+             ║ capacity        ║
+             ╚════════╤════════╝
+                      ▲
+  L2          SCADA / HISTORIAN — machine state
+
+  ═══  system of record        ╌╌╌  a seam: no system owns the comparison
+  ───  interface, one hop
+
+  Instantiated three ways:  PLANT-A  full stack, 9 systems, 3 seams live
+                            PLANT-B  no APS, bespoke PLM→ERP integration, 6 systems
+                            PLANT-C  no PLM/ECM, 7 systems
+                                     │
+                                     ▼
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  2 · THE SITUATIONS                          data/amo-situations.md · v0.5    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+  SIT-AMO-001  scarce common part contention
+  SIT-AMO-002  supplier delivery slip with cascading need-date impact
+  SIT-AMO-003  engineering change against released work-in-progress
+  SIT-AMO-004  bottleneck slot contention under a committed sequence
+  SIT-AMO-005  yield shortfall against a committed date
+
+  Each card carries:
+    trigger.source          emitting system, emission mode, latency class
+    solver boundary         what is already solved and out of scope
+    detectability           DIRECT · DERIVED · ABSENT
+    strategies              system_of_action, writes, reversibility
+                            (REVERSIBLE · COMPENSATING_ONLY · IRREVERSIBLE),
+                            delegation_ceiling
+    NO_ACTION               hold and absorb, as an explicit execution_path
+                                     │
+                          loader/  ── one command, one transaction
+                                     ▼
+                          ┌────────────────────┐
+                          │  MEMGRAPH          │  every system_class must
+                          │                    │  resolve to a :System node
+                          └─────────┬──────────┘  or the load fails
+                                    │
+╔═══════════════════════════════════▼═══════════════════════════════════════════╗
+║  3 · THE MCP SERVER            read-only · https://mcp.sooriah.com/amo/mcp    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+   nine tools, each returning the Cypher it ran
+
+   ┌── discovery ──────────────┐ ┌── qualification ──────────┐ ┌── context ─────────┐
+   │ list_situation_types      │ │ explain_qualifier         │ │ read_order_context │
+   │ get_stack_model           │ │ match_situations          │ │ read_commitments   │
+   │ get_situation_footprint   │ │ get_skill                 │ │                    │
+   └───────────────────────────┘ └───────────────────────────┘ └────────────────────┘
+   ┌── strategy enumeration ───────────────────────────────────┐
+   │ get_strategies                                            │
+   └───────────────────────────────────────────────────────────┘
+                                    │
+                 ┌──────────────────┴──────────────────┐
+                 ▼                                     ▼
+╔════════════════════════════════════╗  ╔═══════════════════════════════════════╗
+║  4 · SKILLS        skills/         ║  ║  5 · AGENTS        agents/            ║
+╚════════════════════════════════════╝  ╚═══════════════════════════════════════╝
+
+  amo-situation-triage                     AG-01 · situation qualifier
+  amo-part-contention                      LangGraph · Python
+  amo-bottleneck-contention
+  amo-yield-shortfall                      route ─┬─ match  ──┐
+  _TEMPLATE                                       └─ screen ──┴─ qualify ─
+                                                    detect_check ─ verdict
+  Each carries:
+    divergence note   the axis on which        Returns one of four verdicts:
+                      practitioners diverge      · judgment call — the spread
+    solver boundary   what not to re-derive        and who owns the call
+    delegation        the ceiling range           · a solver already answers
+      posture         across strategies             this — which one
+    vocabulary        local terms → field         · real, but undetectable at
+                      values, overridable           this plant — which system
+    tool sequencing   qualify before                is missing
+                      enumerating strategies      · outside the bench
+
+                                             get_strategies is not bound to AG-01
+```
 
 ---
 
 ## The throughline
 
 Take an S&OE decision an AI would happily invent a confident answer to, and give
-it the structure to say instead: *this is judgment, here's the range of
-defensible moves, here's who owns the call.*
+it the structure to say instead: *this is judgment, here is the range of
+defensible moves, here is who owns the call.*
 
 ---
 
@@ -88,9 +227,10 @@ python -m loader.load                 # needs a Memgraph on bolt://localhost:768
 
 ## Status
 
-`[PROPOSED]` throughout. Five cards, one plant model, four skills, one agent. The
-data is synthetic and the plant instantiations are authored judgments, not
-observations from a real site. Growing toward ~20 cards before it's called done.
+`[PROPOSED]` throughout. Five cards, one plant model (instantiated three ways),
+four skills, one agent. The data is synthetic and the plant instantiations are
+authored judgments, not observations from a real site. Growing toward ~20 cards
+before it's called done.
 
 Design notes and the decisions worth not relitigating are in
 [`DECISIONS.md`](DECISIONS.md).
