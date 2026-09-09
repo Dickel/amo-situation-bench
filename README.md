@@ -16,10 +16,6 @@ your work orders and commitments; an `MES` node means whatever holds your
 confirmations and demonstrated capacity. A card written against those classes
 should read the same whichever product sits behind them.
 
-What is real is the structure: the seams between systems, the shape of the
-decisions that fall into them, and the discipline that stops an agent
-collapsing a judgment call into a confident single answer.
-
 ---
 
 ## Why AMO
