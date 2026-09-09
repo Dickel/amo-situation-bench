@@ -1,12 +1,21 @@
 # AMO — Agentic Manufacturing Orchestration
 
-**A synthetic factory, the short-horizon decisions inside it where good planners
-disagree, and the graph, server and agent that let an AI reason about them
-without pretending there is one right answer.**
+**An agentic architecture for the short-horizon manufacturing decisions where
+competent practitioners diverge: a synthetic plant, the situations inside it, a
+read-only MCP server over the graph, and an agent that qualifies a situation
+before it proposes anything.**
 
-Nothing in here is real. No customer data, no real orders, no real plants. The
-plant is invented, the work orders are invented, and the vendors named
-(SAP S/4HANA, Siemens Opcenter) are named only to borrow interface vocabulary.
+The bench simulates a discrete manufacturing plant and the systems that run it —
+ERP, MES, PLM/ECM, APS, QMS, IBP, a supplier portal, a process historian, and the
+human routines that sit between them with no system of record at all. The plant
+is synthetic and so is every order in it.
+
+The vocabulary is deliberately generic: system *classes* and the interfaces
+between them, not any one vendor's product. An `ERP` node means whatever masters
+your work orders and commitments; an `MES` node means whatever holds your
+confirmations and demonstrated capacity. A card written against those classes
+should read the same whichever product sits behind them.
+
 What is real is the structure: the seams between systems, the shape of the
 decisions that fall into them, and the discipline that stops an agent
 collapsing a judgment call into a confident single answer.
@@ -18,58 +27,27 @@ collapsing a judgment call into a confident single answer.
 Manufacturing already has systems for almost everything. ERP holds the
 commitments. APS chooses a sequence. MES records what the floor actually did.
 PLM owns the design and its changes. Each is excellent at its job and each has
-one thing in common: **it is a system of record for one function, usually at one
-site.**
+one thing in common: it is a system of record for one function, usually at one
+site. AMO acts as a system of action that runs across sites and across systems,
+from planning through to execution.
 
-An MES is deployed per plant. It is configured around that plant's lines, its
-work centres, its routings, its people. That is not a defect — it is what makes
-it useful. But it means the MES cannot answer the question a planner is actually
-holding on a Tuesday morning:
+---
 
-> *This part is short. Two programmes need it. One of them is for a customer we
-> are already late to. Do I protect the programme, protect total flow, protect
-> cash, or protect the supplier relationship — and can I still make the date I
-> promised?*
-
-That question spans ERP (the commitment), MES (what was really delivered), PLM
-(whether the revision in flight is still valid), the supplier portal (whether
-the promise date moved), and a human routine with no system of record at all
-(the clear-to-build review where it actually gets decided). No system owns the
-comparison, because a comparison across systems is nobody's system of record.
-
-**AMO is the layer that does own it: a system of *action* that runs across
-sites and across systems, from planning through to execution.** Not another
-system of record. Not a better solver. The thing that notices a situation
-nothing else can see, states the defensible moves and their trade-offs, and
-knows how far it is allowed to act on its own.
-
-### What qualifies as a situation
+## What qualifies as a situation
 
 Every card in the bench passes one test:
 
 > *Given the same numbers, would two competent practitioners land on the same
 > move, or on two different defensible ones?*
 
-If they would converge, a solver already owns it and it is not in here.
-Netting, BOM explosion, date propagation, re-sequencing against a stated
-objective — all solved, all deliberately out of scope. If they would diverge,
-and both could defend the answer, it is a card.
+If they would converge, a solver already owns it and it is not in here. Netting,
+BOM explosion, date propagation, re-sequencing against a stated objective — all
+solved, all deliberately out of scope. If they would diverge, and both could
+defend the answer, it is a card.
 
-This is also the boundary of the scope. **S&OE** — Sales & Operations Execution
-— is the short-horizon cycle where the plan meets what actually happened and
-someone has to re-decide: this week, this shift, this order. The planning cycle
-above it (S&OP) is not in scope. The daily and weekly re-deciding is.
-
-### The three layers, and why only one of them is agentic
-
-| Layer | What it does | Test |
-|---|---|---|
-| Deterministic arithmetic | Explode the BOM, net against supply, propagate a date change, find the first period that goes short | Two competent planners compute the same number. No model belongs near it. |
-| What-if and optimisation | Stage a change and recompute; compare before and after on delivery, coverage and cash | Can the objective be written as one function? Then optimise it, do not reason about it. |
-| **Choosing between defensible answers** | Decide which option *this* plant should take, when coverage, cash and delivery are in genuine tension | Do two good practitioners disagree, and can both defend it? Only then is there something to teach. |
-
-Simulation tells you what each option costs. It does not tell you which one to
-take. That remainder is the whole subject of this repo.
+The scope is **S&OE** — Sales & Operations Execution, the short-horizon cycle
+where the plan meets what actually happened and someone has to re-decide: this
+week, this shift, this order. The planning cycle above it is not in scope.
 
 Longer form: [dickel.sooriah.com/vao/manufacturing](https://dickel.sooriah.com/vao/manufacturing).
 
