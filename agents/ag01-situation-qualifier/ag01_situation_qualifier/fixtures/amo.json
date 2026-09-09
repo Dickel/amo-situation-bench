@@ -1,6 +1,6 @@
 {
   "_note": "Real payloads captured from the live AMO bench with include_cypher=false.",
-  "_captured": "2026-09-08",
+  "_captured": "2026-09-09",
   "list_situation_types": {
     "domain": "AMO",
     "count": 5,

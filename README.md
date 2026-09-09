@@ -159,7 +159,7 @@ Longer form: [dickel.sooriah.com/vao/manufacturing](https://dickel.sooriah.com/v
                           └─────────┬──────────┘  or the load fails
                                     │
 ╔═══════════════════════════════════▼═══════════════════════════════════════════╗
-║  3 · THE MCP SERVER            read-only · https://mcp.sooriah.com/amo/mcp    ║
+║  3 · THE MCP SERVER            read-only · https://mcp.agenticgraph.net/amo/mcp    ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 
    nine tools, each returning the Cypher it ran
@@ -213,7 +213,7 @@ defensible moves, here is who owns the call.*
 
 ```bash
 # talk to the live bench, nothing to install
-npx @modelcontextprotocol/inspector https://mcp.sooriah.com/amo/mcp
+npx @modelcontextprotocol/inspector https://mcp.agenticgraph.net/amo/mcp
 
 # run the qualifier against the live server (Python 3.12+)
 cd agents/ag01-situation-qualifier

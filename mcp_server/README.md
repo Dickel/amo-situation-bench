@@ -3,7 +3,7 @@
 Curated, read-only MCP tool surface over the situation graph. Streamable-HTTP
 transport. The only publicly reachable part of the deployment.
 
-Live: **https://mcp.sooriah.com/amo/mcp**
+Live: **https://mcp.agenticgraph.net/amo/mcp**
 
 ## Structure
 

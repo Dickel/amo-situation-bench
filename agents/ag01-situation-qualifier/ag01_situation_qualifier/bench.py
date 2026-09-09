@@ -22,7 +22,7 @@ import json
 from pathlib import Path
 from typing import Any, Protocol
 
-AMO_MCP_URL = "https://mcp.sooriah.com/amo/mcp"
+AMO_MCP_URL = "https://mcp.agenticgraph.net/amo/mcp"
 
 ALLOWED_TOOLS = (
     "list_situation_types",

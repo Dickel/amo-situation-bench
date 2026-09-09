@@ -16,7 +16,7 @@ import asyncio
 import json
 import sys
 
-DEFAULT_URL = "https://mcp.sooriah.com/amo/mcp"
+DEFAULT_URL = "https://mcp.agenticgraph.net/amo/mcp"
 
 CASES = {
     "list_situation_types": {},

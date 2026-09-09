@@ -1,7 +1,7 @@
 # AG-01 — Situation Qualifier
 
 Status: **BUILDABLE and built.** Every tool it calls is live on
-`mcp.sooriah.com/amo/mcp`. 40 offline tests pass with no network and no model
+`mcp.agenticgraph.net/amo/mcp`. 40 offline tests pass with no network and no model
 spend.
 
 Turns an unstructured description or an entity id into one of four verdicts.
