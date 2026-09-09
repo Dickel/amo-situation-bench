@@ -159,7 +159,7 @@ Longer form: [dickel.sooriah.com/vao/manufacturing](https://dickel.sooriah.com/v
                           └─────────┬──────────┘  or the load fails
                                     │
 ╔═══════════════════════════════════▼═══════════════════════════════════════════╗
-║  3 · THE MCP SERVER            read-only · https://mcp.agenticgraph.net/amo/mcp    ║
+║  3 · THE MCP SERVER       read-only · https://mcp.agenticgraph.net/amo/mcp    ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 
    nine tools, each returning the Cypher it ran
