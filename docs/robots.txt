@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://dickel.github.io/amo-situation-bench/sitemap.xml
