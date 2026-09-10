@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMO — Agentic Manufacturing Orchestration</title>
+<meta name="description" content="An agentic architecture for the short-horizon (S&amp;OE) manufacturing decisions where competent practitioners diverge: a synthetic plant, five situations, a read-only MCP server over the graph, and an agent that qualifies before it proposes.">
+<link rel="canonical" href="https://dickel.github.io/amo-situation-bench/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dickel.github.io/amo-situation-bench/">
+<meta property="og:title" content="AMO — Agentic Manufacturing Orchestration">
+<meta property="og:description" content="A synthetic manufacturing plant and the short-horizon decisions inside it where good planners disagree — with the graph, MCP server, skills and first agent.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AMO — Agentic Manufacturing Orchestration">
+<meta name="twitter:description" content="A synthetic manufacturing plant and the short-horizon decisions where good planners disagree — graph, MCP server, skills, first agent.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "AMO — Agentic Manufacturing Orchestration",
+  "description": "An agentic architecture for the short-horizon (S&amp;OE) manufacturing decisions where competent practitioners diverge: a synthetic plant, five situations, a read-only MCP server over the graph, and an agent that qualifies a situation before it proposes anything.",
+  "codeRepository": "https://github.com/Dickel/amo-situation-bench",
+  "programmingLanguage": "Python",
+  "license": "https://opensource.org/licenses/MIT",
+  "author": { "@type": "Person", "name": "Dickel Sooriah", "url": "https://dickel.sooriah.com" }
+}
+</script>
+<style>
+  :root { color-scheme: light dark; --fg:#1a1a1a; --muted:#666; --link:#2563eb; --rule:rgba(127,127,127,.25); --code-bg:rgba(127,127,127,.12); }
+  @media (prefers-color-scheme: dark) { :root { --fg:#e8e8e8; --muted:#9aa0a6; } }
+  * { box-sizing: border-box; }
+  body { font: 16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         color: var(--fg); max-width: 46rem; margin: 0 auto; padding: 5vh 1.4rem 12vh; }
+  h1 { font-size: 1.7rem; line-height: 1.25; margin: 0 0 1rem; }
+  h2 { font-size: 1.15rem; margin: 2.8rem 0 .6rem; }
+  .lead { font-size: 1.05rem; font-weight: 600; margin: 0 0 1.6rem; }
+  .muted { color: var(--muted); }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace,SFMono-Regular,Menlo,monospace; background: var(--code-bg);
+         padding: .1em .4em; border-radius: 4px; font-size: .92em; }
+  pre { background: var(--code-bg); padding: 1rem 1.1rem; border-radius: 8px; overflow-x: auto;
+        font-family: ui-monospace,SFMono-Regular,Menlo,monospace; font-size: .82rem; line-height: 1.45; }
+  blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid var(--rule);
+               color: var(--muted); font-style: italic; }
+  hr { border: none; border-top: 1px solid var(--rule); margin: 3rem 0; }
+  ul { padding-left: 1.2rem; }
+  .links li { margin: .3rem 0; }
+  .map { font-size: .74rem; }
+  @media (max-width: 640px) { .map { font-size: .62rem; } }
+</style>
+</head>
+<body>
+
+<h1>AMO — Agentic Manufacturing Orchestration</h1>
+
+<p class="lead">An agentic architecture for the short-horizon manufacturing
+decisions where competent practitioners diverge: a synthetic plant, the
+situations inside it, a read-only MCP server over the graph, and an agent that
+qualifies a situation before it proposes anything.</p>
+
+<p>The bench simulates a discrete manufacturing plant and the systems that run
+it — ERP, MES, PLM/ECM, APS, QMS, IBP, a supplier portal, a process historian,
+and the human routines that sit between them with no system of record at all.
+The plant is synthetic and so is every order in it.</p>
+
+<p>The vocabulary is deliberately generic: system <em>classes</em> and the
+interfaces between them, not any one vendor&rsquo;s product. An <code>ERP</code>
+node means whatever masters your work orders and commitments; an <code>MES</code>
+node means whatever holds your confirmations and demonstrated capacity. A card
+written against those classes should read the same whichever product sits behind
+them.</p>
+
+<h2>Why AMO</h2>
+
+<p>Manufacturing already has systems for almost everything. ERP holds the
+commitments. APS chooses a sequence. MES records what the floor actually did.
+PLM owns the design and its changes. Each is excellent at its job and each has
+one thing in common: it is a system of record for one function, usually at one
+site. AMO acts as a system of <em>action</em> that runs across sites and across
+systems, from planning through to execution.</p>
+
+<h2>What qualifies as a situation</h2>
+
+<p>Every card in the bench passes one test:</p>
+
+<blockquote>Given the same numbers, would two competent practitioners land on
+the same move, or on two different defensible ones?</blockquote>
+
+<p>If they would converge, a solver already owns it and it is not in here.
+Netting, BOM explosion, date propagation, re-sequencing against a stated
+objective — all solved, all deliberately out of scope. If they would diverge,
+and both could defend the answer, it is a card.</p>
+
+<p>The scope is <strong>S&amp;OE</strong> — Sales &amp; Operations Execution, the
+short-horizon cycle where the plan meets what actually happened and someone has
+to re-decide: this week, this shift, this order. The planning cycle above it is
+not in scope.</p>
+
+<p class="muted">Longer form:
+<a href="https://dickel.sooriah.com/vao/manufacturing">dickel.sooriah.com/vao/manufacturing</a>.</p>
+
+<h2>What has been built</h2>
+
+<pre class="map">╔═══════════════════════════════════════════════════════════════════════════════╗
+║  1 · THE SYNTHETIC PLANT                                                      ║
+║  MODEL-AMO-PLANT-IT — nine system classes, their interfaces, their seams      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+ ISA-95
+ level
+        IBP / S&amp;OP              PLM / ECM              SUPPLIER PORTAL
+  L4    planned independent     eBOM · ECO ·           promise dates
+        requirements            work instructions
+             │                       │   ╎                     │
+             │                       │   ╎ BLIND-PLM-ERP       │
+             │                       │   ╎ no system compares  │
+             │                       │   ╎ ECO effectivity to  │
+             │                       │   ╎ released orders     │
+             │                       │   ╎ → SIT-AMO-003       │
+             └───────────┐           │   ╎                     │
+                         ▼           ▼   ╎                     ▼
+  L4                  ╔══════════════════╧═════════════════════════╗
+                      ║              E R P                         ║
+                      ║  mBOM · routing · work orders · POs ·      ║
+                      ║  component reservations · commitments      ║
+                      ╚═══╤══════════════════════════════════╤═════╝
+                          │                                  ╎
+                          ▼                                  ╎ BLIND-MES-ERP
+  L4/3    ╔═══════════════════════╗   ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌ ╎ ERP holds planned
+          ║        A P S          ║ ╌╌ HUMAN ROUTINE         ╎ quantity, MES holds
+          ║ sequenced operation   ║   clear-to-build,        ╎ delivered quantity,
+          ║ queue per work centre ║   daily tiering,         ╎ no message carries
+          ║                       ║   overtime — no          ╎ the delta against
+          ║                       ║   system of record       ╎ the commitment
+          ╚═══════════╤═══════════╝     ▲                    ╎ → SIT-AMO-005
+                      │      BLIND-APS-HUM                   ╎
+                      │      solver reports infeasible;      ╎
+                      │      nothing arbitrates between      ╎
+                      │      commitments → SIT-AMO-004       ╎
+                      ▼                                      ╎
+  L3         ╔═════════════════╗                             ╎
+             ║      M E S      ║══▶ QMS   ◀╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯
+             ║ confirmations · ║    inspection, NCR
+             ║ demonstrated    ║
+             ║ capacity        ║
+             ╚════════╤════════╝
+                      ▲
+  L2          SCADA / HISTORIAN — machine state
+
+  ═══  system of record        ╌╌╌  a seam: no system owns the comparison
+  ───  interface, one hop
+
+  Instantiated three ways:  PLANT-A  full stack, 9 systems, 3 seams live
+                            PLANT-B  no APS, bespoke PLM→ERP integration, 6 systems
+                            PLANT-C  no PLM/ECM, 7 systems
+                                     │
+                                     ▼
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  2 · THE SITUATIONS                          data/amo-situations.md · v0.5    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+  SIT-AMO-001  scarce common part contention
+  SIT-AMO-002  supplier delivery slip with cascading need-date impact
+  SIT-AMO-003  engineering change against released work-in-progress
+  SIT-AMO-004  bottleneck slot contention under a committed sequence
+  SIT-AMO-005  yield shortfall against a committed date
+
+  Each card carries:
+    trigger.source          emitting system, emission mode, latency class
+    solver boundary         what is already solved and out of scope
+    detectability           DIRECT · DERIVED · ABSENT
+    strategies              system_of_action, writes, reversibility
+                            (REVERSIBLE · COMPENSATING_ONLY · IRREVERSIBLE),
+                            delegation_ceiling
+    NO_ACTION               hold and absorb, as an explicit execution_path
+                                     │
+                          loader/  ── one command, one transaction
+                                     ▼
+                          ┌────────────────────┐
+                          │  MEMGRAPH          │  every system_class must
+                          │                    │  resolve to a :System node
+                          └─────────┬──────────┘  or the load fails
+                                    │
+╔═══════════════════════════════════▼═══════════════════════════════════════════╗
+║  3 · THE MCP SERVER       read-only · https://mcp.agenticgraph.net/amo/mcp    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+   nine tools, each returning the Cypher it ran
+
+   ┌── discovery ──────────────┐ ┌── qualification ──────────┐ ┌── context ─────────┐
+   │ list_situation_types      │ │ explain_qualifier         │ │ read_order_context │
+   │ get_stack_model           │ │ match_situations          │ │ read_commitments   │
+   │ get_situation_footprint   │ │ get_skill                 │ │                    │
+   └───────────────────────────┘ └───────────────────────────┘ └────────────────────┘
+   ┌── strategy enumeration ───────────────────────────────────┐
+   │ get_strategies                                            │
+   └───────────────────────────────────────────────────────────┘
+                                    │
+                 ┌──────────────────┴──────────────────┐
+                 ▼                                     ▼
+╔════════════════════════════════════╗  ╔═══════════════════════════════════════╗
+║  4 · SKILLS        skills/         ║  ║  5 · AGENTS        agents/            ║
+╚════════════════════════════════════╝  ╚═══════════════════════════════════════╝
+
+  amo-situation-triage                     AG-01 · situation qualifier
+  amo-part-contention                      LangGraph · Python
+  amo-bottleneck-contention
+  amo-yield-shortfall                      route ─┬─ match  ──┐
+  _TEMPLATE                                       └─ screen ──┴─ qualify ─
+                                                    detect_check ─ verdict
+  Each carries:
+    divergence note   the axis on which        Returns one of four verdicts:
+                      practitioners diverge      · judgment call — the spread
+    solver boundary   what not to re-derive        and who owns the call
+    delegation        the ceiling range           · a solver already answers
+      posture         across strategies             this — which one
+    vocabulary        local terms → field         · real, but undetectable at
+                      values, overridable           this plant — which system
+    tool sequencing   qualify before                is missing
+                      enumerating strategies      · outside the bench
+
+                                             get_strategies is not bound to AG-01</pre>
+
+<h2>Try it</h2>
+
+<pre># talk to the live bench, nothing to install
+npx @modelcontextprotocol/inspector https://mcp.agenticgraph.net/amo/mcp
+
+# run the qualifier against the live server (Python 3.12+)
+cd agents/ag01-situation-qualifier
+pip install -r requirements.txt
+python -m ag01_situation_qualifier.run "what's happening with WO-4471?"</pre>
+
+<hr>
+
+<ul class="links">
+  <li><strong>Repository:</strong> <a href="https://github.com/Dickel/amo-situation-bench">github.com/Dickel/amo-situation-bench</a></li>
+  <li><strong>Live MCP server:</strong> <a href="https://mcp.agenticgraph.net/amo/mcp">mcp.agenticgraph.net/amo/mcp</a></li>
+  <li><strong>Methodology:</strong> <a href="https://dickel.sooriah.com/vao/manufacturing">dickel.sooriah.com/vao/manufacturing</a></li>
+  <li><strong>Design notes:</strong> <a href="https://github.com/Dickel/amo-situation-bench/blob/main/DECISIONS.md">DECISIONS.md</a></li>
+</ul>
+
+<p class="muted"><code>[PROPOSED]</code> throughout. Five cards, one plant model
+(instantiated three ways), four skills, one agent. Synthetic data only — no
+customer data, no real orders, no real plants.</p>
+
+</body>
+</html>
