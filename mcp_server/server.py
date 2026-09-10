@@ -17,7 +17,7 @@ import uvicorn
 from mcp.server.mcpserver import Context, MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Mount, Route
 
 from .config import Config, load
@@ -25,6 +25,62 @@ from .graph import GraphClient
 from .ratelimit import RateLimiter, RateLimitExceeded
 
 log = logging.getLogger("amo.mcp")
+
+_REPO_URL = "https://github.com/Dickel/amo-situation-bench"
+_METHOD_URL = "https://dickel.sooriah.com/vao/manufacturing"
+_MCP_ENDPOINT = "https://mcp.agenticgraph.net/amo/mcp"
+
+# Served at `/` to a browser. Tools and health probes get JSON. Self-contained,
+# no external assets (CSP-safe). `.format()` fills the three links.
+_LANDING_HTML = """<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMO &mdash; Agentic Manufacturing Orchestration &middot; MCP server</title>
+<meta name="description" content="A read-only MCP server over a synthetic manufacturing plant and the short-horizon S&amp;OE decisions inside it where competent practitioners diverge.">
+<meta property="og:title" content="AMO &mdash; Agentic Manufacturing Orchestration">
+<meta property="og:description" content="A read-only MCP server over a synthetic manufacturing plant and the S&amp;OE decisions where good planners disagree.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mcp.agenticgraph.net/">
+<link rel="canonical" href="https://mcp.agenticgraph.net/">
+<style>
+  :root {{ color-scheme: light dark; }}
+  body {{ font: 16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+         max-width: 44rem; margin: 6vh auto; padding: 0 1.4rem; }}
+  h1 {{ font-size: 1.5rem; margin: 0 0 .2rem; }}
+  .sub {{ color: #666; margin: 0 0 2rem; }}
+  pre {{ background: rgba(127,127,127,.12); padding: 1rem; border-radius: 8px;
+         overflow-x: auto; font-family: ui-monospace,SFMono-Regular,Menlo,monospace; }}
+  a {{ color: #2563eb; }}
+  ul {{ padding-left: 1.2rem; }}
+  hr {{ border: none; border-top: 1px solid rgba(127,127,127,.25); margin: 2rem 0; }}
+</style>
+</head><body>
+<h1>AMO &mdash; Agentic Manufacturing Orchestration</h1>
+<p class="sub">A read-only MCP server over a synthetic manufacturing plant and the
+short-horizon <strong>S&amp;OE</strong> decisions inside it where competent
+practitioners diverge.</p>
+
+<p>This host serves one MCP endpoint:</p>
+<pre>{endpoint}</pre>
+<p>Streamable-HTTP transport. Nine read-only tools &mdash; discover the situation
+catalogue, qualify whether a situation is judgment or solver territory, trace it
+across the plant's systems, enumerate the competing strategies. Every response
+can carry the exact Cypher it ran.</p>
+
+<p>Point an MCP client at it, e.g.:</p>
+<pre>npx @modelcontextprotocol/inspector {endpoint}</pre>
+
+<hr>
+<ul>
+  <li><strong>Code, data, agent:</strong> <a href="{repo}">{repo}</a></li>
+  <li><strong>The methodology:</strong> <a href="{method}">{method}</a></li>
+  <li><strong>Health:</strong> <a href="/healthz">/healthz</a></li>
+</ul>
+<p class="sub">Synthetic data only. No customer data, no real orders, no real
+plants.</p>
+</body></html>
+""".format(endpoint=_MCP_ENDPOINT, repo=_REPO_URL, method=_METHOD_URL)
 
 _INSTRUCTIONS = """
 This server exposes the {domain} catalog of "situation types" — judgment-territory
@@ -301,6 +357,13 @@ def build_app(cfg: Config) -> tuple[Starlette, list[GraphClient]]:
             status_code=200 if ok else 503,
         )
 
+    async def root(request):
+        # A browser gets a landing page; a tool or health probe (any Accept
+        # other than text/html) gets the same JSON as /healthz.
+        if "text/html" not in request.headers.get("accept", ""):
+            return await healthz(request)
+        return HTMLResponse(_LANDING_HTML)
+
     @asynccontextmanager
     async def lifespan(_app):
         async with AsyncExitStack() as stack:
@@ -311,7 +374,7 @@ def build_app(cfg: Config) -> tuple[Starlette, list[GraphClient]]:
             g.close()
 
     app = Starlette(
-        routes=[Route("/healthz", healthz), Route("/", healthz), *mounts],
+        routes=[Route("/healthz", healthz), Route("/", root), *mounts],
         lifespan=lifespan,
     )
     return app, graphs
